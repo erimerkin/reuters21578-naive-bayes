@@ -30,4 +30,9 @@ def calculate_f1_score(results, actual_results, average = 'macro'):
     
     return 2 * (precision * recall) / (precision + recall)
     
-    
+
+def compare_results(results, actual_results):
+    true_positives = 0
+    false_positives = 0
+    true_negatives = 0
+    false_negatives = 0

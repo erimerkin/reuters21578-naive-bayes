@@ -29,7 +29,7 @@ class MultivariateBernoulliNaiveBayes:
 
             for word in self.vocab:
                 word_occurences = sum(1 for i in range(len(x_in_class)) if word in x_in_class[i])
-                self.feature_probabilities[curr_class][word] = (word_occurences + alpha) / (class_occurences + 2)
+                self.feature_probabilities[curr_class][word] = (word_occurences + alpha) / (class_occurences + (alpha*2))
 
             
     def predict(self, X):

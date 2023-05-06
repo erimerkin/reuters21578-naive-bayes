@@ -17,7 +17,8 @@ class MultivariateBernoulliNaiveBayes:
         self.classes = list(set([item for sublist in y for item in sublist]))
         
         # Compute class probabilities & feature probabilities
-        for curr_class in self.classes:
+        for index, curr_class in enumerate(self.classes):
+            print(f"\r[MultivariateBernoulliNB] Training class: {curr_class} {index+1}/{len(self.classes)}...", end="\r")
             class_occurences = sum(1 for i in range(len(y)) if curr_class in y[i])
             self.class_probabilities[curr_class] =  class_occurences / len(y)
 
@@ -31,10 +32,13 @@ class MultivariateBernoulliNaiveBayes:
                 word_occurences = sum(1 for i in range(len(x_in_class)) if word in x_in_class[i])
                 self.feature_probabilities[curr_class][word] = (word_occurences + alpha) / (class_occurences + (alpha*2))
 
+        print()
             
+        
     def predict(self, X):
-        y_pred = [0] * X.shape[0]
+        y_pred = [0] * len(X)
         for i, x in enumerate(X):
+            print(f"\r[MultivariateBernoulliNB] Predicting article {i}/{len(X)}...", end="\r")
             class_scores = {}
             for curr_class in self.classes:
                 # Compute log-likelihood for each feature
@@ -50,4 +54,5 @@ class MultivariateBernoulliNaiveBayes:
                 class_scores[curr_class] = sum(log_likelihoods) + math.log(self.class_probabilities[curr_class])
             # Choose class with highest log-probability
             y_pred[i] = max(class_scores, key=class_scores.get)
+        print()
         return y_pred

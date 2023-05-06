@@ -134,6 +134,10 @@ def collect_occurences(target_labels):
     return occurences
 
 
+import random
+import math
+from stat_tools import f1_score, confusion_matrix
+
 def main():
 
     
@@ -159,14 +163,63 @@ def main():
     print("Most popular topics in training set:\nTOPIC\t\t|\tTRAIN\t|\tTEST")
     print("--" * 25)
     
+    selected_x_train = []
+    selected_y_train = []
+    
+    selected_x_test = []
+    selected_y_test = []
+    
+    selected_topics = []
     for topic in sorted_topic_occurences[:10]:
         topic_key = topic[0]
+        selected_topics.append(topic_key)
         print(f"{topic_key}\t\t|\t {train_label_occurences[topic_key]} \t|\t {test_label_occurences[topic_key]}")
         
+    for i in range(len(x_train)):
+        included_topics = [topic for topic in selected_topics if topic in y_train[i]]
+        if any(included_topics):
+            selected_x_train.append(x_train[i])
+            selected_y_train.append(included_topics)
+            
+    for i in range(len(x_test)):
+        included_topics = [topic for topic in selected_topics if topic in y_test[i] ]
+        if any(included_topics):
+            selected_x_test.append(x_test[i])
+            selected_y_test.append(included_topics)
+
+        
+    # Divide train set into %20 development set and %80 training set
+    random.seed(8)
+    development_set_indexes = random.sample(range(len(selected_x_train)), int(len(selected_x_train) * 0.2))
+        
+    x_development = [selected_x_train[i] for i in development_set_indexes]
+    y_development = [selected_y_train[i] for i in development_set_indexes]
     
-    multinominal_nb = MultinomialNaiveBayes()
-    multivariate_nb = MultivariateBernoulliNaiveBayes()
+    print(f"\n[INFO] Development set size: {len(x_development)}")
     
+    tuning_x_train = [selected_x_train[i] for i in range(len(selected_x_train)) if i not in development_set_indexes]
+    tuning_y_train = [selected_y_train[i] for i in range(len(selected_y_train)) if i not in development_set_indexes]
+        
+    multinominal_nb = MultivariateBernoulliNaiveBayes()
+    
+    alpha = 2.0
+    
+    multinominal_nb.train(tuning_x_train, tuning_y_train, alpha=alpha)
+    print("Training done!")
+    results = multinominal_nb.predict(x_development)
+    
+    
+    macro_F1_score = f1_score(y_development, results, type="macro")
+    micro_F1_score = f1_score(y_development, results, type="micro")
+    print(f"F1 Score Macro: {macro_F1_score}, Micro: {micro_F1_score}, alpha: {alpha}")
+    # multivariate_nb = MultivariateBernoulliNaiveBayes()
+    
+    
+    # conf_matrix = confusion_matrix(y_development[25:50], ['earn'] * 25)
+    
+    # print(y_development[25:50])
+    # print('-' * 25)    
+    # print(conf_matrix)
     
     
     
